@@ -138,7 +138,7 @@ var colorPicker = angular.module('colorpicker', [])
                             }
                         }
                     ];
-                    string = string.toLowerCase();
+                    string = ( typeof string === "string" ) ? string.toLowerCase() : string;
                     var hsva = null;
                     for (var key in stringParsers) {
                         if (stringParsers.hasOwnProperty(key)) {
@@ -161,7 +161,7 @@ var colorPicker = angular.module('colorpicker', [])
 colorPicker.directive('colorPicker', ['$document', '$compile', 'ColorHelper', function ($document, $compile, ColorHelper) {
         return {
             restrict: 'A',
-            scope: {colorPickerModel: '=', colorPickerOutputFormat: '='},
+            scope: {colorPickerModel: '=', colorPickerOutputFormat: '=', colorPickerItem: '='},
             controller: ['$scope', function ($scope) {
                     $scope.show = false;
                     $scope.sAndLMax = {};
@@ -406,7 +406,7 @@ colorPicker.directive('colorPicker', ['$document', '$compile', 'ColorHelper', fu
                 scope.$on('color-changed', function (event) {
                     scope.$apply(function () {
                         scope.update();
-                        scope.colorPickerModel = scope.outputColor;
+                        // scope.colorPickerModel = scope.outputColor;
                         if (attr.colorPickerShowValue === 'true') {
                             element.val(scope.outputColor);
                         }
@@ -472,9 +472,19 @@ colorPicker.directive('colorPicker', ['$document', '$compile', 'ColorHelper', fu
                     element.off('paste', delayedUpdate);
                 });
 
+                scope.notifyColorChanged = function() {
+                    scope.$emit( 'colorpicker-colorupdated', 
+                        { 
+                            item: scope.colorPickerItem, 
+                            color: scope.outputColor 
+                        } 
+                    );                    
+                }
+
                 function mousedown(event) {
                     if (event.target !== element[0] && template[0] !== event.target && !isDescendant(template[0], event.target)) {
                         scope.$apply(function () {
+                            scope.notifyColorChanged();
                             scope.show = false;
                         });
                         $document.off('mousedown', mousedown);
